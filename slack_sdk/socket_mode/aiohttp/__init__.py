@@ -346,6 +346,7 @@ class SocketModeClient(AsyncBaseSocketModeClient):
         # a new monitor and a new message receiver are also created.
         # If a new session is created but we failed to create the new
         # monitor or the new message, we should try it.
+        mock_exception_raised = False
         while True:
             try:
                 old_session: Optional[ClientWebSocketResponse] = (
@@ -387,6 +388,10 @@ class SocketModeClient(AsyncBaseSocketModeClient):
                 if self.logger.level <= logging.DEBUG:
                     self.logger.debug(f"Sending a ping message with the newly established connection ({session_id})...")
                 t = time.time()
+                if not mock_exception_raised:
+                    self.current_session.close()
+                    mock_exception_raised = True
+                    raise Exception
                 await self.current_session.ping(f"sdk-ping-pong:{t}")
 
                 if self.current_session_monitor is not None:
